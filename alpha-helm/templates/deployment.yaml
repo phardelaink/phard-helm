@@ -1,0 +1,75 @@
+{{- $namespace := .Values.global.namespace.name -}}
+{{- range $serviceName,$webService :=  .Values.webServices }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $serviceName }}
+  namespace: {{ $namespace }}
+spec:
+  replicas: {{ default 1 $webService.replicaCount }}
+  revisionHistoryLimit: 2
+  minReadySeconds: 30
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1  
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $serviceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ $serviceName }}
+        {{- range $label_key, $label_value := $webService.podLabels }}
+        {{ $label_key }}: "{{ $label_value }}"
+        {{- end }}
+    spec:
+      {{- if $webService.nodeSelector }}
+      nodeSelector:
+        eks.amazonaws.com/compute-type: {{ $webService.nodeSelector.asg }}
+      tolerations:
+      - key: eks.amazonaws.com/compute-type
+        operator: Equal
+        value: {{ $webService.nodeSelector.asg }}
+        effect: NoSchedule
+      {{- end }}
+      {{- if gt (int $webService.replicaCount) 1 }}
+      affinity: 
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - {{ $serviceName }}
+            topologyKey: "kubernetes.io/hostname"
+      {{- end }}
+      containers: 
+        {{- range $container := $webService.containers }}
+        - name: {{ default $serviceName $container.name}}
+          image: 334450016200.dkr.ecr.us-east-1.amazonaws.com/{{ $container.image.repository }}:{{ $container.image.tag }}
+          imagePullPolicy: {{ default "IfNotPresent" $container.image.pullPolicy }}
+          ports:
+          {{- range $port := $container.ports }}
+            - name: {{ $port.name }}
+              port: {{ $port.port }}
+          {{- end }}
+          env:
+          {{- range $cEnv := $container.containerEnv }}
+            - name: {{ $cEnv.name }}
+              value: {{ $cEnv.value }}
+          {{- end }}
+          {{- if $container.resources }}
+          resources:
+            request: 
+              cpu: {{ $container.resources.request.cpu }}
+              memory: {{ $container.resources.request.memory }}
+            limit:
+              cpu: {{ $container.resources.limit.cpu }}
+              memory: {{ $container.resources.limit.memory }}
+          {{- end }}              
+        {{- end }}
+---
+{{- end }}

@@ -1,0 +1,58 @@
+# Default values for alpha-helm
+global:
+  namespace:
+    create: false
+    name: myfactory-dev
+
+webServices:
+
+  myfactory-app:
+    replicaCount: 1
+    nodeSelector:
+    podLabels:
+      version: "2.9.0"
+    containers:
+      - image:
+          repository: myplant-io
+          tag: "myfactory-app_88fc948"
+          pullPolicy: IfNotPresent
+        ports:
+          - name: public
+            port: 8080
+        resources:
+          limit:
+            cpu: 0.1
+            memory: 1Gi
+          request:
+            cpu: 0.05
+            memory: 512Mi
+        containerEnv:
+          - name: NODE_ENV
+            value: "production"
+          - name: NODE_CONFIG_ENV
+            value: "staging-dev"
+          - name: GQL_WHITELIST_ONLY
+            value: "false"
+    # autoscaling:
+    #   metrics:
+    #     - name: cpu
+    #       averageUtilization: 50
+    # ingress:
+    #   ingressClass: nginx
+    #   ingressAnnotations:
+    #     prod: phard-nginx
+    #     staging: kof-nginx
+    #   rules:
+    #     - host: alpha.staging.myplant.io
+    #       paths:
+    #         - path: /ws/slt-prediction(/|$)(.*)
+    #           pathType: Prefix
+    #           backend:
+    #             service:
+    #               name: slt-prediction-api
+    #               port: use-annotation
+    configMaps:
+      - name: appconfigmaps
+        data:
+          "SESHAT_URL": "https://alpha.staging.myplant.io"
+          "CDS_URL": "https://st-manuals.myplant.io/cds/api"

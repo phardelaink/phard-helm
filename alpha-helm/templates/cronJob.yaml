@@ -1,0 +1,63 @@
+{{- $namespace := .Values.global.namespace.name -}}
+{{- range $jobName,$cronJob :=  .Values.cronJobs }}
+{{- if eq $cronJob.managedBy "kubernetes" }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $jobName }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- range $label_key, $label_value := $cronJob.jobLabels }}
+    {{ $label_key }}: "{{ $label_value }}"
+    {{- end }}
+spec:
+  schedule: {{ $cronJob.schedule | quote }} # every 6 hours 30 mins past the hr
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            {{- range $spec := $cronJob.specs }}
+            - name: {{ $jobName }}
+              image: 334450016200.dkr.ecr.us-east-1.amazonaws.com/{{ $spec.image.repository }}:{{ $spec.image.tag }}
+              imagePullPolicy: Always
+              envFrom:
+                {{- range $ef := $spec.envFrom}}
+                - configMapRef:
+                    name: {{ $ef.name }}
+                {{- end  }}
+              env:
+                {{- if $spec.env }}
+                {{- range $e := $spec.env }}
+                - name: {{ $e.name }}
+                  value: {{ $e.value }}
+                {{- end }}
+                {{- end }}
+                {{- if $spec.secrets }}
+                {{- range $secret := $spec.secrets }}
+                - name: {{ $secret.name }}
+                  valueFrom:
+                    secretKeyRef:
+                      key: {{ $secret.secretKeyRef.key }}
+                      name: {{ $secret.secretKeyRef.name }}
+                {{- end }}
+                {{- end }}
+              args:
+                {{- range $arg := $spec.args }}
+                - {{ $arg }}
+                {{- end }}
+              resources:
+                limits:
+                  cpu: {{ $spec.resources.limits.cpu }}
+                  memory: {{ $spec.resources.limits.memory }}
+                requests:
+                  cpu: {{ $spec.resources.requests.cpu }}
+                  memory: {{ $spec.resources.requests.memory }}
+            {{- end }}
+          restartPolicy: {{ $cronJob.restartPolicy }}
+      backoffLimit: 3
+
+---
+{{- end }}
+{{- end }}

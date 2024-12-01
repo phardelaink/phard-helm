@@ -1,0 +1,18 @@
+{{- $namespace := .Values.global.namespace.name -}}
+{{- range $serviceName,$webService :=  .Values.webServices }}
+{{- if $webService.configMaps }}
+{{- range $configMap :=  $webService.configMaps }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name:  {{ default "$serviceName-config" $configMap.name }}
+  namespace: {{ $namespace }}
+data: 
+  {{- range $data_key, $data_value :=  $configMap.data }}
+  {{ $data_key }}: "{{ $data_value }}"
+  {{- end }}
+
+---
+{{- end }}
+{{- end }}
+{{- end }}

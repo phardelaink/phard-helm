@@ -1,0 +1,16 @@
+{{- if .Values.global.namespace.create }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name:  {{ .Values.global.namespace.name }}
+  labels: 
+    name: {{ .Values.global.namespace.name }}
+    {{- if .Values.global.namespace.kuma.enabled }}
+    kuma.io/sidecar-injection: enabled 
+    {{- end }}
+  annotations:
+    {{- if .Values.global.namespace.kuma.enabled }}
+    kuma.io/mesh: {{ default "alpha" .Values.global.namespace.kuma.name }} 
+    {{- end }}    
+---
+{{- end }}

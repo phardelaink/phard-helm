@@ -1,0 +1,23 @@
+{{- $namespace := .Values.global.namespace.name -}}
+{{- range $serviceName,$webService :=  .Values.webServices }}
+{{- if $webService.service }}
+{{- range $service :=  $webService.service }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ default $serviceName $service.name }}
+  namespace: {{ $namespace }}
+spec:
+  type: {{ $service.type }}
+  ports:
+    {{- range $servicePort := $service.ports }}
+    - name: {{ $servicePort.name }}
+      port: {{ $servicePort.port }}
+      appProtocol: {{ default "http" $servicePort.appProtocol }}
+    {{- end }}
+  selector:
+    app: {{ $serviceName }}
+---
+{{- end }}
+{{- end }}
+{{- end }}
