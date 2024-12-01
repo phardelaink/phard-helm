@@ -2,8 +2,21 @@ apiVersion: v1
 entries:
   alpha-helm:
   - apiVersion: v2
+    appVersion: 1.17.1
+    created: "2024-12-01T17:12:57.27797+01:00"
+    description: A Helm chart for alpha environment
+    digest: d50c271d5f17fb9cd5c42ca455960ec00c5d11bbc940d66a47a22bdf6d4d0c3f
+    maintainers:
+    - email: phardelain.k@gmail.com
+      name: Phard
+    name: alpha-helm
+    type: application
+    urls:
+    - https://phardelaink.github.io/phard-helm/alpha-helm-0.2.1.tgz
+    version: 0.2.1
+  - apiVersion: v2
     appVersion: 1.17.0
-    created: "2024-12-01T14:52:17.029314+01:00"
+    created: "2024-12-01T17:12:57.277467+01:00"
     description: A Helm chart for alpha environment
     digest: 60da044d84f555c6b5d9380306075bb7146cbf4177265d569bd14926897f23ad
     maintainers:
@@ -16,7 +29,7 @@ entries:
     version: 0.2.0
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-12-01T14:52:17.028714+01:00"
+    created: "2024-12-01T17:12:57.276825+01:00"
     description: A Helm chart for alpha environment
     digest: d746f660b9d71b02e3ebb207eb9e12476fa1bdefd8d3e1c7fe247aed26a98be5
     maintainers:
@@ -27,4 +40,4 @@ entries:
     urls:
     - https://phardelaink.github.io/phard-helm/alpha-helm-0.1.0.tgz
     version: 0.1.0
-generated: "2024-12-01T14:52:17.027642+01:00"
+generated: "2024-12-01T17:12:57.27591+01:00"
