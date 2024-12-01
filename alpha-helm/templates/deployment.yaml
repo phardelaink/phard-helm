@@ -5,6 +5,9 @@ kind: Deployment
 metadata:
   name: {{ $serviceName }}
   namespace: {{ $namespace }}
+  labels:
+    app: {{ $serviceName }}
+    environment: {{ $webService.renv }}
 spec:
   replicas: {{ default 1 $webService.replicaCount }}
   revisionHistoryLimit: 2
