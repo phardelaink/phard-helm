@@ -1,0 +1,38 @@
+{{- $namespace := .Values.global.namespace.name -}}
+{{- range $serviceName,$webService :=  .Values.webServices }}
+{{- if gt (int $webService.replicaCount) 1 }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ $serviceName }}
+  namespace: {{ $namespace }}
+spec:
+  minReplicas: {{ $webService.replicaCount }}
+  maxReplicas: {{ mul (int $webService.replicaCount) 2 }}
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ $serviceName }}
+  metrics:
+  {{- if not $webService.autoscaling }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 90
+  {{- end }}
+  {{- if $webService.autoscaling }}
+  {{- range $metric := $webService.autoscaling.metrics}}
+  - type: Resource
+    resource:
+      name: {{ $metric.name }}
+      target:
+        type: Utilization
+        averageUtilization: {{ $metric.averageUtilization }}
+  {{- end }}
+  {{- end }}
+
+---
+{{- end }}
+{{- end }}
